@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+    <title>CCNY Student Elections - Voter </title>
+</head>
+<body>
+<nav class="container-fluid">
+    <ul>
+        <li><strong>CCNY Student Elections - Registration</strong></li>
+    </ul>
+    <ul>
+        <li><a href="1Home.html">Home</a></li>
+    </ul>
+</nav>
+
+<main class="container">
+    <section>
+        <h1>Cast Ballot</h1>
+
+        <form id="ballotForm">
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" required><br><br>
+
+            <label for="dob">Date of Birth:</label>
+            <input type="date" id="dob" name="dob" required><br><br>
+
+            <h2>Candidates</h2>
+           
+            <fieldset>
+                <legend>President</legend>
+                <div id="office1"></div>
+            </fieldset>
+
+            <fieldset>
+                <legend>Vice President</legend>
+                <div id="office2"></div>
+            </fieldset>
+
+            <fieldset>
+                <legend>Treasury</legend>
+                <div id="office3"></div>
+            </fieldset>
+
+            <button type="submit">Cast Ballot</button>
+
+            <button type="button" onclick="clearOfficeForm()">Cast New Ballot</button> 
+        </form>
+    </section>
+    <script>
+        async function getCandidates() {
+            const response = await fetch('http://localhost:8080/candidates');
+            const candidates = await response.json();
+            candidates.forEach(candidate => {
+                const radio = document.createElement('input');
+                radio.type = 'radio';
+                radio.name = `office${candidate.office_id}_candidates`;
+                radio.value = candidate.id;
+                const label = document.createElement('label');
+                label.textContent = `${candidate.name} (${candidate.party})`;
+                const officeDiv = document.getElementById(`office${candidate.office_id}`);
+                officeDiv.appendChild(radio);
+                officeDiv.appendChild(label);
+                officeDiv.appendChild(document.createElement('br'));
+            });
+        }
+
+        getCandidates();
+
+        document.getElementById('ballotForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            const formData = new FormData(form);
+            const data = {
+                name: formData.get('name'),
+                dob: formData.get('dob'),
+                office_1: getSelectedCandidate('office1'),
+                office_2: getSelectedCandidate('office2'),
+                office_3: getSelectedCandidate('office3')
+            };
+            const response = await fetch('http://localhost:8080/create_ballot', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+            const result = await response.text();
+            alert(result); 
+        });
+
+        function getSelectedCandidate(officeId) {
+            const radioButtons = document.querySelectorAll(`#${officeId} input[type="radio"]:checked`);
+            if (radioButtons.length === 0) {
+                return null;
+            }
+            return radioButtons[0].value;
+        }
+
+        function clearOfficeForm() {
+            const allRadioButtons = document.querySelectorAll('input[type="radio"]');
+            allRadioButtons.forEach(button => {
+                button.checked = false;
+            });
+
+            document.getElementById('name').value = '';
+            document.getElementById('dob').value = '';
+        }
+    </script>
+
+</body>
+</html>
+

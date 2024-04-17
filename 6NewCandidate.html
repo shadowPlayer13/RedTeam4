@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+    <title>CCNY Student Elections - Admin Dashboard</title>
+</head>
+<body>
+<nav class="container-fluid">
+    <ul>
+        <li><strong>CCNY Student Elections - Admin</strong></li>
+    </ul>
+    <ul>
+        <li><a href="5Dashboard.html">Dashboard</a></li>
+        <li><a onclick="logout()">Logout</a></li>
+                
+    </ul>
+</nav>
+<main class="container">
+    <div class="grid">
+        <section id="adminDashboard">
+            <h2>Admin Dashboard</h2>
+            <h3>Create New Candidate:</h3>
+            
+            <form id="CandidateForm" action="your_backend_endpoint_for_updating_results" method="POST">
+                <label for="fullName">Name:</label>
+                <input type="text" id="fullName" name="fullName" required>
+                
+                <label for="office_id">Office:</label>
+                <select id="office_id" name="office_id" required>
+                    <option value="1">President</option>
+                    <option value="2">Vice president</option>
+                    <option value="3">Treasury</option>
+                   
+                </select>
+
+                <label for="party">Party:</label>
+                <select id="party" name="party" required>
+                    <option value="Democratic">Democratic</option>
+                    <option value="Republican">Republican</option>
+                    <option value="Independent">Independent</option>
+                </select>
+                
+                <button type="submit">Save Candidate</button>
+                <button type="button" onclick="clearCandidateForm()">New Candidate</button>
+            </form>
+        </section>
+
+        <div id="responseMessage"></div>
+    </div>
+</main>
+<footer class="container">
+    <small><a href="#">Privacy Policy</a> • <a href="#">Terms of Service</a></small>
+</footer>
+<script>
+ function getToken() {
+            return document.cookie.split(';')
+                .map(cookie => cookie.trim())
+                .find(cookie => cookie.startsWith('jwt_token='))
+                ?.split('=')[1];
+        }
+
+    function clearCandidateForm() {
+        document.getElementById('CandidateForm').reset();
+    }
+
+    document.getElementById('CandidateForm').addEventListener('submit', async function(event) {
+        event.preventDefault();
+
+        const formData = {
+            name: document.getElementById('fullName').value,
+            office_id: document.getElementById('office_id').value,
+            party: document.getElementById('party').value
+        };
+
+        const token = getToken();
+            if (!token) {
+                alert('Token not found');
+                return;
+            }
+
+        const response = await fetch('http://localhost:8080/register_candidate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}` 
+            },
+            body: JSON.stringify(formData)
+        });
+
+        const responseData = await response.text();
+        document.getElementById('responseMessage').innerText = responseData;
+    });
+
+    function logout() {
+            document.cookie = 'jwt_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+            alert('Logged out successfully');
+            window.location.href = "4AdminLogin.html";
+    }
+
+</script>
+
+</body>
+</html>

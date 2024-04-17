@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+    <title>CCNY Student Elections - Login</title>
+</head>
+<body>
+<nav class="container-fluid">
+    <ul>
+        <li><strong>CCNY Student Elections - Registration</strong></li>
+    </ul>
+    <ul>
+        <li><a href="1Home.html">Home</a></li>
+    </ul>
+</nav>
+<main class="container">
+    <div class="grid">
+        <section>
+            <hgroup>
+                <h2>Administrator Login</h2>
+            </hgroup>
+            <form id="loginForm" class="grid">
+                <input type="text" id="username" name="username" placeholder="Username" aria-label="Username" required>
+                <input type="password" id="password" name="password" placeholder="Password" aria-label="Password" required>
+                <button type="submit">Log In</button> 
+            </form>
+            <div id="responseMessage"></div>
+        </section>
+    </div>
+</main>
+<footer class="container">
+    <small><a href="#">Privacy Policy</a> • <a href="#">Terms of Service</a></small>
+</footer>
+<script>
+    document.getElementById('loginForm').addEventListener('submit', async function(event) {
+        event.preventDefault(); 
+
+        const formData = {
+            username: document.getElementById('username').value,
+            password: document.getElementById('password').value
+        };
+
+        const response = await fetch('http://localhost:8080/authenticate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        });
+
+        if (response.ok) {
+            const token = await response.text();
+            document.cookie = `jwt_token=${token}; path=/`;
+            document.getElementById('responseMessage').innerText = 'Login successful';
+            window.location.href = "5Dashboard.html";
+        } else {
+            document.getElementById('responseMessage').innerText = 'Authentication failed';
+        }
+    });
+
+    window.addEventListener('load', async function() {
+    const response = await fetch('http://localhost:8080/login_check', {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${getCookie('jwt_token')}` 
+        }
+    });
+
+    if (response.ok) {
+        
+        window.location.href = "5Dashboard.html";
+    }
+});
+
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+}
+</script>
+</body>
+</html>

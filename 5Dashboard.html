@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+    <title>CCNY Student Elections - Administrator Dashboard</title>
+    <script>
+        function getToken() {
+            return document.cookie.split(';')
+                .map(cookie => cookie.trim())
+                .find(cookie => cookie.startsWith('jwt_token='))
+                ?.split('=')[1];
+        }
+
+        function logout() {
+            document.cookie = 'jwt_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+            alert('Logged out successfully');
+            window.location.href = "4AdminLogin.html";
+        }
+
+        function openElection() {
+            const token = getToken();
+            if (!token) {
+                alert('Token not found');
+                return;
+            }
+
+            fetch('http://localhost:8080/open_election', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}` 
+                },
+                body: JSON.stringify({ "open": true }) 
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('Election opened successfully');
+                } else {
+                    alert('Failed to open election');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to open election');
+            });
+        }
+
+        function closeElection() {
+            const token = getToken();
+            if (!token) {
+                alert('Token not found');
+                return;
+            }
+
+            fetch('http://localhost:8080/open_election', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}` 
+                },
+                body: JSON.stringify({ "open": false }) 
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('Election closed successfully');
+                } else {
+                    alert('Failed to close election');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to close election');
+            });
+        }
+        
+    </script>
+</head>
+<body>
+    <style>
+        button, .a {width:22%}
+        
+    </style>
+
+<nav class="container-fluid">
+    <ul>
+        <li><strong>CCNY Student Election - Tasks</strong></li>
+    </ul>
+    <ul>
+        <li><a href="1Home.html">Home</a></li>
+      
+    </ul>
+</nav>
+<main class="container">
+    <section>
+        <h2>Administrator Dashboard</h2>
+        <form id="AdminTasks">
+            <h2>Welcome to the CCNY Student Elections</h2>
+            <p>Please select the actions you want to perform:</p>
+            <a class="a" href="6NewCandidate.html" role="button">Create New Candidate</a><br><br>
+            <a class="a" href="2RegisterVoter.html" role="button">Register a Voter</a><br><br>
+            <button type="button" onclick="openElection()">Open Election</button>
+            <button type="button" onclick="closeElection()">Close Election</button>
+            <a class="a" href="7Tally.html" role="button">Tally</a><br><br>
+            <button type="button" onclick="logout()">Logout</button>
+            
+        </form>
+    </section>
+</main>
+<footer class="container">
+    <small><a href="#">Privacy Policy</a> • <a href="#">Terms of Service</a></small>
+</footer>
+</body>
+</html>

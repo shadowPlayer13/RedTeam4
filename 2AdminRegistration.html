@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+    <title>CCNY Student Elections - Voter Registration</title>
+</head>
+<body>
+<nav class="container-fluid">
+    <ul>
+        <li><strong>CCNY Student Elections - Registration</strong></li>
+    </ul>
+    <ul>
+        <li><a href="1Home.html">Home</a></li>
+        <li><a href="4AdminLogin.html" role="button">Login</a></li>
+    </ul>
+</nav>
+<main class="container">
+    <section>
+        <h2>Administrator Registration</h2>
+        <form id="AdminForm" action="your_backend_endpoint_for_registration" method="POST">
+        
+            <label for="name">Full Name:</label>
+            <input type="text" id="name" name="name" required>
+
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required>
+            
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
+
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+
+            <button type="submit">Save</button>
+                <button type="button" onclick="clearAdminForm()">Register a New Administrator</button> <!-- Updated onclick function -->
+            </form>
+        </section>
+
+    <div id="responseMessage"></div>
+
+</main>
+<footer class="container">
+    <small><a href="#">Privacy Policy</a> • <a href="#">Terms of Service</a></small>
+</footer>
+
+<script>
+    function clearAdminForm() { 
+        document.getElementById('AdminForm').reset();
+    }
+
+    document.getElementById('AdminForm').addEventListener('submit', async function(event) { 
+        event.preventDefault(); 
+
+        const formData = {
+            name: document.getElementById('name').value,
+            email: document.getElementById('email').value,
+            username: document.getElementById('username').value,
+            password: document.getElementById('password').value
+           
+        };
+
+        const response = await fetch('http://localhost:8080/register_admin', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        });
+
+        const responseData = await response.text();
+        document.getElementById('responseMessage').innerText = responseData;
+    });
+
+    window.addEventListener('load', async function() {
+    const response = await fetch('http://localhost:8080/login_check', {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${getCookie('jwt_token')}` 
+        }
+    });
+
+    if (response.ok) {
+        
+        window.location.href = "5Dashboard.html";
+    }
+});
+
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+}
+</script>
+
+</body>
+</html>

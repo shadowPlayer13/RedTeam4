@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+    <title>CCNY Student Elections - Voter Registration</title>
+</head>
+<body>
+<nav class="container-fluid">
+    <ul>
+        <li><strong>CCNY Student Elections - Registration</strong></li>
+    </ul>
+    <ul>
+        <li><a href="5Dashboard.html">Dashboard</a></li>
+        <li><a onclick="logout()">Logout</a></li>
+    </ul>
+</nav>
+
+<main class="container">
+    <section>
+        <h2>Tallies</h2>
+        <style>
+            table {
+                border-collapse: collapse;
+                width: 100%;
+            }
+            th, td {
+                border: 1px solid #dddddd;
+                text-align: left;
+                padding: 8px;
+            }
+            th {
+                background-color: #f2f2f2;
+            }
+        </style>
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Party</th>
+                    <th>Office ID</th>
+                    <th>Tally</th>
+                </tr>
+            </thead>
+            <tbody id="tallyTableBody">
+                
+            </tbody>
+        </table>
+    </section>
+</main>
+
+<script>
+    function getToken() {
+            return document.cookie.split(';')
+                .map(cookie => cookie.trim())
+                .find(cookie => cookie.startsWith('jwt_token='))
+                ?.split('=')[1];
+        }
+
+        const token = getToken();
+            if (!token) {
+                alert('Token not found');
+            }
+
+    fetch('http://localhost:8080/tallies',{
+        headers: {
+                    'Authorization': `Bearer ${token}` 
+                },
+    })
+
+    .then(response => response.json())
+    .then(data => {
+        const talliesByOffice = groupByOffice(data);
+        const tallyTableBody = document.getElementById('tallyTableBody');
+        tallyTableBody.innerHTML = '';
+        var tie = false
+        for (const officeId in talliesByOffice) {
+            const officeTallies = talliesByOffice[officeId];
+            const sortedTallies = officeTallies.sort((a, b) => b.tally - a.tally); 
+            const winner = sortedTallies[0];
+        if (sortedTallies.lenght>1){
+            
+        
+            if (sortedTallies[0].tally==sortedTallies[1].tally){
+        tie = true                        
+        }
+    }
+            sortedTallies.forEach(tally => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${tally.name}</td>
+                    <td>${tally.party}</td>
+                    <td>${tally.office_id}</td>
+                    <td>${tally.tally}</td>
+                `;
+                tallyTableBody.appendChild(row);
+            });
+                
+            const winnerRow = document.createElement('tr');
+            if (tie) {
+                winnerRow.innerHTML = `
+                <td colspan="3">Winner</td>
+                <td>Tie</td>
+            `;
+            }
+            else {
+            winnerRow.innerHTML = `
+                <td colspan="3">Winner</td>
+                <td>${winner.name} (${winner.party})</td>
+            `;
+            }
+            tallyTableBody.appendChild(winnerRow);
+
+            const emptyRow = document.createElement('tr');
+            emptyRow.innerHTML = `<td colspan="4">&nbsp;</td>`;
+            tallyTableBody.appendChild(emptyRow);
+        }
+    })
+    .catch(error => {
+        console.error('Error fetching tallies:', error);
+    });
+
+    function groupByOffice(tallies) {
+        const talliesByOffice = {};
+        tallies.forEach(tally => {
+            if (!talliesByOffice[tally.office_id]) {
+                talliesByOffice[tally.office_id] = [];
+            }
+            talliesByOffice[tally.office_id].push(tally);
+        });
+        return talliesByOffice;
+    }
+    
+    function logout() {
+            document.cookie = 'jwt_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+            alert('Logged out successfully');
+            window.location.href = "4AdminLogin.html";
+    }
+
+</script>
+</body>
+</html>
